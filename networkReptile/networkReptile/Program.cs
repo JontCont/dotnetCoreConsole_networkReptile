@@ -1,44 +1,47 @@
 ﻿using HtmlAgilityPack;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Xml.Linq;
 
 namespace networkReptile
 {
-
-
-
     internal class Program
     {
         static async Task Main(string[] args)
         {
             //設定爬的網站
-            string url = "https://udn.com/news/cate/2/6644";
-            
-            //取得當前 html 字串
-            HttpClient client = new();
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            string responseBody = await response.Content.ReadAsStringAsync();
+            string url = "https://www.69shu.com/47120/";
+            Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            HtmlWeb web = new();
+            web.OverrideEncoding = System.Text.Encoding.GetEncoding("GB2312");
+            HtmlDocument doc = web.Load(url);
 
-            //設定response Body
-            HtmlDocument doc = new ();
-            doc.LoadHtml(responseBody);
-
-            Console.WriteLine($"!! ----- 即時新聞 ------ !!");
-
-            //取得想要的內容
-            for (int i = 1; i<10; i++)
+            string xpath = @$"//*[@id=""catalog""]/ul/li";
+            HtmlNodeCollection content = doc.DocumentNode.SelectNodes(xpath);
+            for (int index = 1; index < content.Count; index++)
             {
-                string xpath = @$"/html/body/main/div/section[2]/section[2]/div[1]/div[{i}]/div[2]/h2/a";
-                HtmlNodeCollection content = doc.DocumentNode.SelectNodes(xpath);
-                if(content == null) { continue; }
-                foreach (HtmlNode node in content)
-                {
-                    string href = doc.DocumentNode.SelectNodes(xpath+ @"/@href").FirstOrDefault().Attributes.FirstOrDefault().Value.ToString();
-                    Console.WriteLine($"{i} - {node.InnerText} (https://udn.com/{href})");
-                    break;
-                }//foreach (HtmlNode node in content)
-            }//for()
+
+                string strLinkUrl = xpath + @$"[{index}]/a/@href";
+                string strLinkName = xpath + @$"[{index}]/a";
+                var links = doc.DocumentNode.SelectNodes(strLinkUrl).FirstOrDefault().Attributes.FirstOrDefault().Value.ToString();
+                var names = doc.DocumentNode.SelectNodes(strLinkName).Select(x => x.InnerHtml).FirstOrDefault(); //.Select(x => x.Attributes.FirstOrDefault()?.Value);
+                Console.WriteLine($"{index} - {names} : ({links}");
+                DownloadHtml(links, names);
+            }
 
         }//main()
+
+
+
+        static void DownloadHtml(string url, string name)
+        {
+            WebClient wc = new();
+            wc.DownloadFile(url, $"d:\\Temp\\{name}.html");
+        }
+
+
+
     }
 
 
