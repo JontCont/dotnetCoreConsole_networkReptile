@@ -8,10 +8,11 @@ namespace networkReptile
 {
     internal class Program
     {
+        private static string _savePath = "d:\\Temp\\";
         static async Task Main(string[] args)
         {
             //設定爬的網站
-            string url = "https://www.69shu.com/47120/";
+            string url = "https://69shux.com/book/62763/index.html"; //"https://www.69shu.com/47120/";
             Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             HtmlWeb web = new();
             web.OverrideEncoding = System.Text.Encoding.GetEncoding("GB2312");
@@ -19,6 +20,11 @@ namespace networkReptile
 
             string xpath = @$"//*[@id=""catalog""]/ul/li";
             HtmlNodeCollection content = doc.DocumentNode.SelectNodes(xpath);
+            //若資料夾不存在就會創一個
+            if (!Directory.Exists(_savePath))
+            {
+                Directory.CreateDirectory(_savePath);
+            }
             for (int index = 1; index < content.Count; index++)
             {
 
@@ -32,17 +38,11 @@ namespace networkReptile
 
         }//main()
 
-
-
         static void DownloadHtml(string url, string name)
         {
             WebClient wc = new();
-            wc.DownloadFile(url, $"d:\\Temp\\{name}.html");
+            string filePath = Path.Combine(_savePath, $"{name}.html");
+            wc.DownloadFile(url, filePath);
         }
-
-
-
     }
-
-
 }
